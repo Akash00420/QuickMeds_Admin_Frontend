@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { fetchPharmacistRequests } from "../store/Reducer/PharmacistSlice";
-import { fetchVendors } from "../store/Reducer/VendorSlice";
+import { fetchPharmacistRequests } from "../Reducer/PharmacistSlice";
+import { fetchVendors } from "../Reducer/VendorSlice";
 
 const Dashboard = () => {
   const dispatch = useDispatch();

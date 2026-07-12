@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axiosInstance from "../../api/axiosInstance";
+import axiosInstance from "../api/axiosInstance";
 
 const storedAdmin = localStorage.getItem("adminInfo");
 

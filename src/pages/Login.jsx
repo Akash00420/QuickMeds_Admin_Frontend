@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { loginAdmin, clearError } from "../store/Reducer/AuthSlice";
+import { loginAdmin, clearError } from "../Reducer/AuthSlice";
 
 const Login = () => {
   const dispatch = useDispatch();

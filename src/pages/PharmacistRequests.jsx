@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchPharmacistRequests } from "../store/Reducer/PharmacistSlice";
+import { fetchPharmacistRequests } from "../Reducer/PharmacistSlice";
 import PharmacistRequestCard from "../components/PharmacistRequestCard";
 
 const filters = [

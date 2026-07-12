@@ -7,7 +7,7 @@ import {
   rejectPharmacist,
   clearGeneratedPassword,
   clearSelected,
-} from "../store/Reducer/PharmacistSlice";
+} from "../Reducer/PharmacistSlice";
 import StatusBadge from "../components/StatusBadge";
 import ApproveModal from "../components/ApproveModal";
 import RejectModal from "../components/RejectModal";
@@ -96,13 +96,7 @@ const PharmacistDetail = () => {
           {selected.documents?.length ? (
             <div className="flex flex-col gap-2">
               {selected.documents.map((doc, i) => (
-                
-                  key={i}
-                  href={doc.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="btn btn-outline btn-sm w-full"
-                >
+                <a key={i} href={doc.url} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm w-full">
                   {doc.name || `Document ${i + 1}`}
                 </a>
               ))}

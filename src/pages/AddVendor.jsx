@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import {
   addVendorDirectly,
   clearVendorGeneratedPassword,
-} from "../store/Reducer/VendorSlice";
+} from "../Reducer/VendorSlice";
 import ApproveModal from "../components/ApproveModal";
 
 const initialForm = {

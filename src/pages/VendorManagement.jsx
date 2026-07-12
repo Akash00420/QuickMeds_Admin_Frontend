@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
-import { fetchVendors, toggleVendorStatus } from "../store/Reducer/VendorSlice";
+import { fetchVendors, toggleVendorStatus } from "../Reducer/VendorSlice";
 import StatusBadge from "../components/StatusBadge";
 
 const VendorManagement = () => {

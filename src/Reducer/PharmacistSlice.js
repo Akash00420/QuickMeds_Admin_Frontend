@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axiosInstance from "../../api/axiosInstance";
+import axiosInstance from "../api/axiosInstance";
 
 const initialState = {
   requests: [],       // pharmacists with status: pending / approved / rejected
