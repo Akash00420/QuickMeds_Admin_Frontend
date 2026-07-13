@@ -16,8 +16,8 @@ const Dashboard = () => {
     dispatch(fetchVendors());
   }, [dispatch]);
 
-  const pendingCount = requests.filter((r) => r.status === "pending").length;
-  const activeVendorCount = vendors.filter((v) => v.status !== "suspended").length;
+  const pendingCount = requests.length;
+  const activeVendorCount = vendors.length;
 
   return (
     <div>

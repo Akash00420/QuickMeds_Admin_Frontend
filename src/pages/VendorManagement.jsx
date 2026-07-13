@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
-import { fetchVendors, toggleVendorStatus } from "../Reducer/VendorSlice";
-import StatusBadge from "../components/StatusBadge";
+import { fetchVendors } from "../Reducer/VendorSlice";
 
 const VendorManagement = () => {
   const dispatch = useDispatch();
@@ -15,14 +14,9 @@ const VendorManagement = () => {
 
   const filtered = vendors.filter(
     (v) =>
-      v.shopName?.toLowerCase().includes(search.toLowerCase()) ||
+      v.name?.toLowerCase().includes(search.toLowerCase()) ||
       v.email?.toLowerCase().includes(search.toLowerCase())
   );
-
-  const handleToggle = (vendor) => {
-    const nextStatus = vendor.status === "suspended" ? "active" : "suspended";
-    dispatch(toggleVendorStatus({ id: vendor._id, status: nextStatus }));
-  };
 
   return (
     <div>
@@ -66,28 +60,15 @@ const VendorManagement = () => {
                 <th>Owner</th>
                 <th>Email</th>
                 <th>Phone</th>
-                <th>Status</th>
-                <th>Action</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((v) => (
                 <tr key={v._id}>
-                  <td>{v.shopName}</td>
-                  <td>{v.ownerName}</td>
-                  <td>{v.email}</td>
+                  <td>{v.name}</td>
+                  <td>{v.owner?.name}</td>
+                  <td>{v.email || v.owner?.email}</td>
                   <td>{v.phone}</td>
-                  <td>
-                    <StatusBadge status={v.status} />
-                  </td>
-                  <td>
-                    <button
-                      className="btn btn-ghost btn-sm"
-                      onClick={() => handleToggle(v)}
-                    >
-                      {v.status === "suspended" ? "Reactivate" : "Suspend"}
-                    </button>
-                  </td>
                 </tr>
               ))}
             </tbody>

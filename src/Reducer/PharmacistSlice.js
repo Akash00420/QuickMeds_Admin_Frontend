@@ -11,7 +11,7 @@ const initialState = {
   error: null,
 };
 
-// GET /pharmacy?isVerified=false  (admin only)
+// GET /pharmacies?isVerified=false  (admin only)
 // filterStatus: "pending" | "approved" | "all"
 export const fetchPharmacistRequests = createAsyncThunk(
   "pharmacist/fetchRequests",
@@ -22,7 +22,7 @@ export const fetchPharmacistRequests = createAsyncThunk(
       if (filterStatus === "approved") params.isVerified = "true";
       // "all" -> no isVerified param
 
-      const res = await axiosInstance.get("/pharmacy", { params });
+      const res = await axiosInstance.get("/pharmacies", { params });
       return res.data.data; // { pharmacies, total, page }
     } catch (err) {
       return rejectWithValue(
@@ -32,12 +32,12 @@ export const fetchPharmacistRequests = createAsyncThunk(
   }
 );
 
-// GET /pharmacy/:pharmacyId
+// GET /pharmacies/:pharmacyId
 export const fetchPharmacistById = createAsyncThunk(
   "pharmacist/fetchById",
   async (id, { rejectWithValue }) => {
     try {
-      const res = await axiosInstance.get(`/pharmacy/${id}`);
+      const res = await axiosInstance.get(`/pharmacies/${id}`);
       return res.data.data.pharmacy;
     } catch (err) {
       return rejectWithValue(
@@ -47,12 +47,12 @@ export const fetchPharmacistById = createAsyncThunk(
   }
 );
 
-// PUT /pharmacy/:pharmacyId/verify  { approve: true }
+// PUT /pharmacies/:pharmacyId/verify  { approve: true }
 export const approvePharmacist = createAsyncThunk(
   "pharmacist/approve",
   async (id, { rejectWithValue }) => {
     try {
-      const res = await axiosInstance.put(`/pharmacy/${id}/verify`, {
+      const res = await axiosInstance.put(`/pharmacies/${id}/verify`, {
         approve: true,
       });
       return res.data.data.pharmacy;
@@ -64,12 +64,12 @@ export const approvePharmacist = createAsyncThunk(
   }
 );
 
-// PUT /pharmacy/:pharmacyId/verify  { approve: false }  -> this is the reject
+// PUT /pharmacies/:pharmacyId/verify  { approve: false }  -> this is the reject
 export const rejectPharmacist = createAsyncThunk(
   "pharmacist/reject",
   async (id, { rejectWithValue }) => {
     try {
-      const res = await axiosInstance.put(`/pharmacy/${id}/verify`, {
+      const res = await axiosInstance.put(`/pharmacies/${id}/verify`, {
         approve: false,
       });
       return res.data.data.pharmacy;
@@ -81,13 +81,13 @@ export const rejectPharmacist = createAsyncThunk(
   }
 );
 
-// PUT /pharmacy/:pharmacyId/deactivate  -> separate from reject; pulls an
+// PUT /pharmacies/:pharmacyId/deactivate  -> separate from reject; pulls an
 // already-approved pharmacy offline
 export const deactivatePharmacist = createAsyncThunk(
   "pharmacist/deactivate",
   async (id, { rejectWithValue }) => {
     try {
-      const res = await axiosInstance.put(`/pharmacy/${id}/deactivate`);
+      const res = await axiosInstance.put(`/pharmacies/${id}/deactivate`);
       return res.data.data.pharmacy;
     } catch (err) {
       return rejectWithValue(
