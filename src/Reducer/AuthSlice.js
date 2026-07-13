@@ -3,8 +3,16 @@ import axiosInstance from "../api/axiosInstance";
 
 const storedAdmin = localStorage.getItem("adminInfo");
 
+let parsedAdmin = null;
+try {
+  parsedAdmin = storedAdmin ? JSON.parse(storedAdmin) : null;
+} catch {
+  parsedAdmin = null;
+  localStorage.removeItem("adminInfo"); // clean up corrupted value
+}
+
 const initialState = {
-  admin: storedAdmin ? JSON.parse(storedAdmin) : null,
+  admin: parsedAdmin,
   isAuthenticated: !!localStorage.getItem("adminToken"),
   loading: false,
   error: null,
@@ -16,8 +24,15 @@ export const loginAdmin = createAsyncThunk(
   async (credentials, { rejectWithValue }) => {
     try {
       const res = await axiosInstance.post("/admin/login", credentials);
+
       localStorage.setItem("adminToken", res.data.token);
-      localStorage.setItem("adminInfo", JSON.stringify(res.data.admin));
+
+      if (res.data.admin) {
+        localStorage.setItem("adminInfo", JSON.stringify(res.data.admin));
+      } else {
+        localStorage.removeItem("adminInfo");
+      }
+
       return res.data;
     } catch (err) {
       return rejectWithValue(
@@ -50,7 +65,7 @@ const authSlice = createSlice({
       .addCase(loginAdmin.fulfilled, (state, action) => {
         state.loading = false;
         state.isAuthenticated = true;
-        state.admin = action.payload.admin;
+        state.admin = action.payload.admin ?? null;
       })
       .addCase(loginAdmin.rejected, (state, action) => {
         state.loading = false;
