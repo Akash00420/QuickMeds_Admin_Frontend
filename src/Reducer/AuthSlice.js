@@ -1,19 +1,19 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axiosInstance from "../api/axiosInstance";
 
-const storedAdmin = localStorage.getItem("adminInfo");
+const storedAdmin = sessionStorage.getItem("adminInfo");
 
 let parsedAdmin = null;
 try {
   parsedAdmin = storedAdmin ? JSON.parse(storedAdmin) : null;
 } catch {
   parsedAdmin = null;
-  localStorage.removeItem("adminInfo"); // clean up corrupted value
+  sessionStorage.removeItem("adminInfo"); // clean up corrupted value
 }
 
 const initialState = {
   admin: parsedAdmin,
-  isAuthenticated: !!localStorage.getItem("adminToken"),
+  isAuthenticated: !!sessionStorage.getItem("adminToken"),
   loading: false,
   error: null,
 };
@@ -25,12 +25,12 @@ export const loginAdmin = createAsyncThunk(
     try {
       const res = await axiosInstance.post("/admin/login", credentials);
 
-      localStorage.setItem("adminToken", res.data.token);
+      sessionStorage.setItem("adminToken", res.data.token);
 
       if (res.data.admin) {
-        localStorage.setItem("adminInfo", JSON.stringify(res.data.admin));
+        sessionStorage.setItem("adminInfo", JSON.stringify(res.data.admin));
       } else {
-        localStorage.removeItem("adminInfo");
+        sessionStorage.removeItem("adminInfo");
       }
 
       return res.data;
@@ -47,8 +47,8 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     logoutAdmin: (state) => {
-      localStorage.removeItem("adminToken");
-      localStorage.removeItem("adminInfo");
+      sessionStorage.removeItem("adminToken");
+      sessionStorage.removeItem("adminInfo");
       state.admin = null;
       state.isAuthenticated = false;
     },

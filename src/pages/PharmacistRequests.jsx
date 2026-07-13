@@ -6,7 +6,6 @@ import PharmacistRequestCard from "../components/PharmacistRequestCard";
 const filters = [
   { key: "pending", label: "Pending" },
   { key: "approved", label: "Approved" },
-  { key: "rejected", label: "Rejected" },
 ];
 
 const PharmacistRequests = () => {

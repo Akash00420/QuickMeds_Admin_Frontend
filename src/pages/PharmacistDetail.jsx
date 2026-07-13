@@ -5,11 +5,9 @@ import {
   fetchPharmacistById,
   approvePharmacist,
   rejectPharmacist,
-  clearGeneratedPassword,
   clearSelected,
 } from "../Reducer/PharmacistSlice";
 import StatusBadge from "../components/StatusBadge";
-import ApproveModal from "../components/ApproveModal";
 import RejectModal from "../components/RejectModal";
 
 const PharmacistDetail = () => {
@@ -17,9 +15,7 @@ const PharmacistDetail = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { selected, generatedPassword, loading, actionLoading } = useSelector(
-    (s) => s.pharmacist
-  );
+  const { selected, loading, actionLoading } = useSelector((s) => s.pharmacist);
 
   const [showReject, setShowReject] = useState(false);
 
@@ -29,11 +25,14 @@ const PharmacistDetail = () => {
   }, [dispatch, id]);
 
   const handleApprove = () => {
-    dispatch(approvePharmacist(id));
+    dispatch(approvePharmacist(id)).then(() => navigate("/pharmacist-requests"));
   };
 
-  const handleReject = (reason) => {
-    dispatch(rejectPharmacist({ id, reason })).then(() => setShowReject(false));
+  const handleReject = () => {
+    dispatch(rejectPharmacist(id)).then(() => {
+      setShowReject(false);
+      navigate("/pharmacist-requests");
+    });
   };
 
   if (loading || !selected) {
@@ -44,6 +43,9 @@ const PharmacistDetail = () => {
     );
   }
 
+  const { street, city, state, pincode } = selected.address || {};
+  const fullAddress = [street, city, state, pincode].filter(Boolean).join(", ");
+
   return (
     <div>
       <div className="page-header">
@@ -51,9 +53,9 @@ const PharmacistDetail = () => {
           <Link to="/pharmacist-requests" className="text-sm text-teal">
             ← Back to requests
           </Link>
-          <div className="page-title mt-2">{selected.shopName}</div>
+          <div className="page-title mt-2">{selected.name}</div>
         </div>
-        <StatusBadge status={selected.status} />
+        <StatusBadge status={selected.isVerified ? "approved" : "pending"} />
       </div>
 
       <div className="dashboard-grid">
@@ -64,11 +66,11 @@ const PharmacistDetail = () => {
           <div className="flex flex-col gap-3">
             <div>
               <div className="stat-label">Owner Name</div>
-              <div>{selected.ownerName}</div>
+              <div>{selected.owner?.name}</div>
             </div>
             <div>
               <div className="stat-label">Email</div>
-              <div>{selected.email}</div>
+              <div>{selected.email || selected.owner?.email}</div>
             </div>
             <div>
               <div className="stat-label">Phone</div>
@@ -76,11 +78,11 @@ const PharmacistDetail = () => {
             </div>
             <div>
               <div className="stat-label">Address</div>
-              <div>{selected.address}</div>
+              <div>{fullAddress}</div>
             </div>
             <div>
-              <div className="stat-label">License Number</div>
-              <div>{selected.license}</div>
+              <div className="stat-label">Registration Number</div>
+              <div>{selected.registrationNumber}</div>
             </div>
             <div>
               <div className="stat-label">Applied On</div>
@@ -93,21 +95,22 @@ const PharmacistDetail = () => {
           <div className="section-header">
             <span className="section-title">Documents</span>
           </div>
-          {selected.documents?.length ? (
-            <div className="flex flex-col gap-2">
-              {selected.documents.map((doc, i) => (
-                <a key={i} href={doc.url} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm w-full">
-                  {doc.name || `Document ${i + 1}`}
-                </a>
-              ))}
-            </div>
+          {selected.licenseDocument?.url ? (
+            <a
+              href={selected.licenseDocument.url}
+              target="_blank"
+              rel="noreferrer"
+              className="btn btn-outline btn-sm w-full"
+            >
+              License Document
+            </a>
           ) : (
             <p className="text-sm text-muted">No documents uploaded</p>
           )}
         </div>
       </div>
 
-      {selected.status === "pending" && (
+      {!selected.isVerified && (
         <div className="card mt-6">
           <div className="section-header">
             <span className="section-title">Take Action</span>
@@ -118,11 +121,7 @@ const PharmacistDetail = () => {
               onClick={handleApprove}
               disabled={actionLoading}
             >
-              {actionLoading ? (
-                <span className="loader loader-sm" />
-              ) : (
-                "Approve"
-              )}
+              {actionLoading ? <span className="loader loader-sm" /> : "Approve"}
             </button>
             <button
               className="btn btn-danger"
@@ -133,17 +132,6 @@ const PharmacistDetail = () => {
             </button>
           </div>
         </div>
-      )}
-
-      {generatedPassword && (
-        <ApproveModal
-          password={generatedPassword}
-          shopName={selected.shopName}
-          onClose={() => {
-            dispatch(clearGeneratedPassword());
-            navigate("/pharmacist-requests");
-          }}
-        />
       )}
 
       {showReject && (

@@ -2,23 +2,28 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axiosInstance from "../api/axiosInstance";
 
 const initialState = {
-  requests: [],       // pharmacists with status: pending / approved / rejected
-  selected: null,      // currently viewed request (PharmacistDetail page)
-  generatedPassword: null, // shown once right after approval
+  requests: [],
+  total: 0,
+  page: 1,
+  selected: null,
   loading: false,
   actionLoading: false,
   error: null,
 };
 
-// GET /admin/pharmacist-requests?status=pending
+// GET /pharmacy?isVerified=false  (admin only)
+// filterStatus: "pending" | "approved" | "all"
 export const fetchPharmacistRequests = createAsyncThunk(
   "pharmacist/fetchRequests",
-  async (status = "pending", { rejectWithValue }) => {
+  async (filterStatus = "pending", { rejectWithValue }) => {
     try {
-      const res = await axiosInstance.get("/admin/pharmacist-requests", {
-        params: { status },
-      });
-      return res.data;
+      const params = {};
+      if (filterStatus === "pending") params.isVerified = "false";
+      if (filterStatus === "approved") params.isVerified = "true";
+      // "all" -> no isVerified param
+
+      const res = await axiosInstance.get("/pharmacy", { params });
+      return res.data.data; // { pharmacies, total, page }
     } catch (err) {
       return rejectWithValue(
         err.response?.data?.message || "Failed to fetch requests"
@@ -27,13 +32,13 @@ export const fetchPharmacistRequests = createAsyncThunk(
   }
 );
 
-// GET /admin/pharmacist-requests/:id
+// GET /pharmacy/:pharmacyId
 export const fetchPharmacistById = createAsyncThunk(
   "pharmacist/fetchById",
   async (id, { rejectWithValue }) => {
     try {
-      const res = await axiosInstance.get(`/admin/pharmacist-requests/${id}`);
-      return res.data;
+      const res = await axiosInstance.get(`/pharmacy/${id}`);
+      return res.data.data.pharmacy;
     } catch (err) {
       return rejectWithValue(
         err.response?.data?.message || "Failed to fetch request details"
@@ -42,15 +47,15 @@ export const fetchPharmacistById = createAsyncThunk(
   }
 );
 
-// POST /admin/pharmacist-requests/:id/approve  -> { generatedPassword }
+// PUT /pharmacy/:pharmacyId/verify  { approve: true }
 export const approvePharmacist = createAsyncThunk(
   "pharmacist/approve",
   async (id, { rejectWithValue }) => {
     try {
-      const res = await axiosInstance.post(
-        `/admin/pharmacist-requests/${id}/approve`
-      );
-      return { id, generatedPassword: res.data.generatedPassword };
+      const res = await axiosInstance.put(`/pharmacy/${id}/verify`, {
+        approve: true,
+      });
+      return res.data.data.pharmacy;
     } catch (err) {
       return rejectWithValue(
         err.response?.data?.message || "Approval failed"
@@ -59,18 +64,34 @@ export const approvePharmacist = createAsyncThunk(
   }
 );
 
-// POST /admin/pharmacist-requests/:id/reject  { reason }
+// PUT /pharmacy/:pharmacyId/verify  { approve: false }  -> this is the reject
 export const rejectPharmacist = createAsyncThunk(
   "pharmacist/reject",
-  async ({ id, reason }, { rejectWithValue }) => {
+  async (id, { rejectWithValue }) => {
     try {
-      await axiosInstance.post(`/admin/pharmacist-requests/${id}/reject`, {
-        reason,
+      const res = await axiosInstance.put(`/pharmacy/${id}/verify`, {
+        approve: false,
       });
-      return { id };
+      return res.data.data.pharmacy;
     } catch (err) {
       return rejectWithValue(
         err.response?.data?.message || "Rejection failed"
+      );
+    }
+  }
+);
+
+// PUT /pharmacy/:pharmacyId/deactivate  -> separate from reject; pulls an
+// already-approved pharmacy offline
+export const deactivatePharmacist = createAsyncThunk(
+  "pharmacist/deactivate",
+  async (id, { rejectWithValue }) => {
+    try {
+      const res = await axiosInstance.put(`/pharmacy/${id}/deactivate`);
+      return res.data.data.pharmacy;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || "Deactivation failed"
       );
     }
   }
@@ -80,9 +101,6 @@ const pharmacistSlice = createSlice({
   name: "pharmacist",
   initialState,
   reducers: {
-    clearGeneratedPassword: (state) => {
-      state.generatedPassword = null;
-    },
     clearSelected: (state) => {
       state.selected = null;
     },
@@ -96,7 +114,9 @@ const pharmacistSlice = createSlice({
       })
       .addCase(fetchPharmacistRequests.fulfilled, (state, action) => {
         state.loading = false;
-        state.requests = action.payload;
+        state.requests = action.payload.pharmacies;
+        state.total = action.payload.total;
+        state.page = action.payload.page;
       })
       .addCase(fetchPharmacistRequests.rejected, (state, action) => {
         state.loading = false;
@@ -120,11 +140,12 @@ const pharmacistSlice = createSlice({
       })
       .addCase(approvePharmacist.fulfilled, (state, action) => {
         state.actionLoading = false;
-        state.generatedPassword = action.payload.generatedPassword;
-        state.requests = state.requests.map((r) =>
-          r._id === action.payload.id ? { ...r, status: "approved" } : r
+        state.requests = state.requests.filter(
+          (r) => r._id !== action.payload._id
         );
-        if (state.selected) state.selected.status = "approved";
+        if (state.selected?._id === action.payload._id) {
+          state.selected = action.payload;
+        }
       })
       .addCase(approvePharmacist.rejected, (state, action) => {
         state.actionLoading = false;
@@ -136,18 +157,36 @@ const pharmacistSlice = createSlice({
       })
       .addCase(rejectPharmacist.fulfilled, (state, action) => {
         state.actionLoading = false;
-        state.requests = state.requests.map((r) =>
-          r._id === action.payload.id ? { ...r, status: "rejected" } : r
+        state.requests = state.requests.filter(
+          (r) => r._id !== action.payload._id
         );
-        if (state.selected) state.selected.status = "rejected";
+        if (state.selected?._id === action.payload._id) {
+          state.selected = action.payload;
+        }
       })
       .addCase(rejectPharmacist.rejected, (state, action) => {
+        state.actionLoading = false;
+        state.error = action.payload;
+      })
+      // deactivate
+      .addCase(deactivatePharmacist.pending, (state) => {
+        state.actionLoading = true;
+      })
+      .addCase(deactivatePharmacist.fulfilled, (state, action) => {
+        state.actionLoading = false;
+        state.requests = state.requests.map((r) =>
+          r._id === action.payload._id ? action.payload : r
+        );
+        if (state.selected?._id === action.payload._id) {
+          state.selected = action.payload;
+        }
+      })
+      .addCase(deactivatePharmacist.rejected, (state, action) => {
         state.actionLoading = false;
         state.error = action.payload;
       });
   },
 });
 
-export const { clearGeneratedPassword, clearSelected } =
-  pharmacistSlice.actions;
+export const { clearSelected } = pharmacistSlice.actions;
 export default pharmacistSlice.reducer;

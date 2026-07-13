@@ -9,7 +9,7 @@ const axiosInstance = axios.create({
 
 // Attach admin token automatically on every request
 axiosInstance.interceptors.request.use((config) => {
-  const token = localStorage.getItem("adminToken");
+  const token = sessionStorage.getItem("adminToken");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -21,8 +21,8 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem("adminToken");
-      localStorage.removeItem("adminInfo");
+      sessionStorage.removeItem("adminToken");
+      sessionStorage.removeItem("adminInfo");
       if (window.location.pathname !== "/login") {
         window.location.href = "/login";
       }
