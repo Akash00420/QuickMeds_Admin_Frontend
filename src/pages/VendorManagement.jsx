@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
-import { fetchVendors } from "../Reducer/VendorSlice";
+import { fetchVendors, toggleVendorStatus } from "../Reducer/VendorSlice";
 
 const VendorManagement = () => {
   const dispatch = useDispatch();
-  const { vendors, loading } = useSelector((s) => s.vendor);
+  const { vendors, loading, actionLoading } = useSelector((s) => s.vendor);
   const [search, setSearch] = useState("");
 
   useEffect(() => {
@@ -17,6 +17,10 @@ const VendorManagement = () => {
       v.name?.toLowerCase().includes(search.toLowerCase()) ||
       v.email?.toLowerCase().includes(search.toLowerCase())
   );
+
+  const handleToggle = (id) => {
+    dispatch(toggleVendorStatus(id));
+  };
 
   return (
     <div>
@@ -60,6 +64,8 @@ const VendorManagement = () => {
                 <th>Owner</th>
                 <th>Email</th>
                 <th>Phone</th>
+                <th>Status</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -67,8 +73,24 @@ const VendorManagement = () => {
                 <tr key={v._id}>
                   <td>{v.name}</td>
                   <td>{v.owner?.name}</td>
-                  <td>{v.email || v.owner?.email}</td>
+                  <td>{v.email}</td>
                   <td>{v.phone}</td>
+                  <td>
+                    <span
+                      className={`badge ${v.isActive ? "badge-success" : "badge-muted"}`}
+                    >
+                      {v.isActive ? "Active" : "Inactive"}
+                    </span>
+                  </td>
+                  <td>
+                    <button
+                      className="btn btn-outline btn-sm"
+                      onClick={() => handleToggle(v._id)}
+                      disabled={actionLoading}
+                    >
+                      {v.isActive ? "Deactivate" : "Activate"}
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -12,8 +12,13 @@ const initialForm = {
   ownerName: "",
   email: "",
   phone: "",
-  address: "",
-  license: "",
+  street: "",
+  city: "",
+  state: "",
+  pincode: "",
+  latitude: "",
+  longitude: "",
+  registrationNumber: "",
 };
 
 const AddVendor = () => {
@@ -28,8 +33,28 @@ const AddVendor = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = () => {
-    if (!form.shopName || !form.ownerName || !form.email || !form.phone) return;
-    dispatch(addVendorDirectly(form));
+    if (
+      !form.shopName ||
+      !form.ownerName ||
+      !form.email ||
+      !form.phone ||
+      !form.street ||
+      !form.city ||
+      !form.state ||
+      !form.pincode ||
+      !form.latitude ||
+      !form.longitude ||
+      !form.registrationNumber
+    )
+      return;
+
+    dispatch(
+      addVendorDirectly({
+        ...form,
+        latitude: Number(form.latitude),
+        longitude: Number(form.longitude),
+      })
+    );
   };
 
   return (
@@ -84,21 +109,69 @@ const AddVendor = () => {
               onChange={handleChange}
             />
           </div>
+
           <div className="form-group" style={{ gridColumn: "1 / -1" }}>
-            <label className="form-label">Address</label>
+            <label className="form-label">Street</label>
             <input
               className="form-input"
-              name="address"
-              value={form.address}
+              name="street"
+              value={form.street}
               onChange={handleChange}
             />
           </div>
-          <div className="form-group" style={{ gridColumn: "1 / -1" }}>
-            <label className="form-label">License Number</label>
+          <div className="form-group">
+            <label className="form-label">City</label>
             <input
               className="form-input"
-              name="license"
-              value={form.license}
+              name="city"
+              value={form.city}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">State</label>
+            <input
+              className="form-input"
+              name="state"
+              value={form.state}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Pincode</label>
+            <input
+              className="form-input"
+              name="pincode"
+              value={form.pincode}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Latitude</label>
+            <input
+              className="form-input"
+              name="latitude"
+              value={form.latitude}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Longitude</label>
+            <input
+              className="form-input"
+              name="longitude"
+              value={form.longitude}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="form-group" style={{ gridColumn: "1 / -1" }}>
+            <label className="form-label">Registration Number</label>
+            <input
+              className="form-input"
+              name="registrationNumber"
+              value={form.registrationNumber}
               onChange={handleChange}
             />
           </div>

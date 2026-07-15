@@ -9,13 +9,13 @@ const initialState = {
   error: null,
 };
 
-// GET /admin/vendors
+// GET /api/pharmacies/admin/vendors -> { success, message, data: { vendors } }
 export const fetchVendors = createAsyncThunk(
   "vendor/fetchAll",
   async (_, { rejectWithValue }) => {
     try {
-      const res = await axiosInstance.get("/admin/vendors");
-      return res.data;
+      const res = await axiosInstance.get("/pharmacies/admin/vendors");
+      return res.data.data.vendors;
     } catch (err) {
       return rejectWithValue(
         err.response?.data?.message || "Failed to fetch vendors"
@@ -24,14 +24,13 @@ export const fetchVendors = createAsyncThunk(
   }
 );
 
-// POST /admin/vendors  { shopName, ownerName, email, phone, address, license }
-// -> { vendor, generatedPassword }
+// POST /api/pharmacies/admin/vendors -> { data: { vendor, generatedPassword } }
 export const addVendorDirectly = createAsyncThunk(
   "vendor/addDirectly",
   async (vendorData, { rejectWithValue }) => {
     try {
-      const res = await axiosInstance.post("/admin/vendors", vendorData);
-      return res.data;
+      const res = await axiosInstance.post("/pharmacies/admin/vendors", vendorData);
+      return res.data.data;
     } catch (err) {
       return rejectWithValue(
         err.response?.data?.message || "Failed to add vendor"
@@ -40,13 +39,13 @@ export const addVendorDirectly = createAsyncThunk(
   }
 );
 
-// PATCH /admin/vendors/:id/status
+// PATCH /api/pharmacies/:pharmacyId/toggle-active -> { data: { pharmacy } }
 export const toggleVendorStatus = createAsyncThunk(
   "vendor/toggleStatus",
-  async ({ id, status }, { rejectWithValue }) => {
+  async (id, { rejectWithValue }) => {
     try {
-      await axiosInstance.patch(`/admin/vendors/${id}/status`, { status });
-      return { id, status };
+      const res = await axiosInstance.patch(`/pharmacies/${id}/toggle-active`);
+      return { id, isActive: res.data?.data?.pharmacy?.isActive };
     } catch (err) {
       return rejectWithValue(
         err.response?.data?.message || "Failed to update vendor status"
@@ -93,7 +92,7 @@ const vendorSlice = createSlice({
       .addCase(toggleVendorStatus.fulfilled, (state, action) => {
         state.vendors = state.vendors.map((v) =>
           v._id === action.payload.id
-            ? { ...v, status: action.payload.status }
+            ? { ...v, isActive: action.payload.isActive }
             : v
         );
       });
