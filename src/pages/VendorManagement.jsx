@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { fetchVendors, toggleVendorStatus } from "../Reducer/VendorSlice";
+import { vendorTypeLabel } from "../utils/vendorTypes";
 
 const VendorManagement = () => {
   const dispatch = useDispatch();
@@ -61,6 +62,7 @@ const VendorManagement = () => {
             <thead>
               <tr>
                 <th>Shop Name</th>
+                <th>Type</th>
                 <th>Owner</th>
                 <th>Email</th>
                 <th>Phone</th>
@@ -72,6 +74,13 @@ const VendorManagement = () => {
               {filtered.map((v) => (
                 <tr key={v._id}>
                   <td>{v.name}</td>
+                  <td style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                    {(v.vendorType || []).map((t) => (
+                      <span key={t} className="badge badge-blue">
+                        {vendorTypeLabel(t)}
+                      </span>
+                    ))}
+                  </td>
                   <td>{v.owner?.name}</td>
                   <td>{v.email}</td>
                   <td>{v.phone}</td>

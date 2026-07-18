@@ -6,12 +6,14 @@ import {
   clearVendorGeneratedPassword,
 } from "../Reducer/VendorSlice";
 import ApproveModal from "../components/ApproveModal";
+import VendorTypeMultiSelect from "../components/VendorTypeMultiSelect";
 
 const initialForm = {
   shopName: "",
   ownerName: "",
   email: "",
   phone: "",
+  vendorType: [],
   street: "",
   city: "",
   state: "",
@@ -38,6 +40,7 @@ const AddVendor = () => {
       !form.ownerName ||
       !form.email ||
       !form.phone ||
+      form.vendorType.length === 0 ||
       !form.street ||
       !form.city ||
       !form.state ||
@@ -107,6 +110,14 @@ const AddVendor = () => {
               name="phone"
               value={form.phone}
               onChange={handleChange}
+            />
+          </div>
+
+          <div className="form-group" style={{ gridColumn: "1 / -1" }}>
+            <label className="form-label">Vendor Type (select all that apply)</label>
+            <VendorTypeMultiSelect
+              value={form.vendorType}
+              onChange={(vals) => setForm({ ...form, vendorType: vals })}
             />
           </div>
 
